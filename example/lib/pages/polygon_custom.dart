@@ -1,8 +1,11 @@
 import 'dart:math';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:graphic/graphic.dart';
 import 'package:graphic/src/graffiti/element/element.dart';
+import 'package:graphic_example/pages/ys_chart.dart';
+import 'package:intl/intl.dart';
 
 import '../data.dart';
 
@@ -105,7 +108,7 @@ List<MarkElement> simpleTooltip(
 
   final painter = TextPainter(
     text: TextSpan(text: textContent, style: textStyle),
-    textDirection: TextDirection.ltr,
+    textDirection: ui.TextDirection.ltr,
   );
   painter.layout();
 
@@ -176,8 +179,52 @@ class PolygonCustomPage extends StatelessWidget {
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
+  List<CoordinatePoint> getDailyData() {
+    var list = <CoordinatePoint>[];
+
+    DateTime now = DateTime.now();
+    DateTime modifiedTime = DateTime(now.year, now.month, now.day, 0, 0, 0);
+    print(modifiedTime);
+    // var time = DateTime.now();
+    var time = modifiedTime;
+    Random random = Random();
+    int min = 1;
+    int max = 3;
+    for (var i = 0; i < 36; ++i) {
+      int randomInRange = random.nextInt(max - min + 1) + min;
+      print(randomInRange);
+      var addHours = randomInRange + i;
+      addHours = i;
+      list.add(CoordinatePoint(time.add(Duration(hours: addHours)), i));
+    }
+    return list;
+  }
+
+  List<CoordinatePoint> getMonthlyData() {
+    var list = <CoordinatePoint>[];
+
+    DateTime now = DateTime.now();
+    DateTime modifiedTime = DateTime(now.year, now.month, now.day, 0, 0, 0);
+    print(modifiedTime);
+    // var time = DateTime.now();
+    var time = modifiedTime;
+    Random random = Random();
+    int min = 1;
+    int max = 3;
+    for (var i = 0; i < 24; ++i) {
+      int randomInRange = random.nextInt(max - min + 1) + min;
+      print(randomInRange);
+      var addHours = randomInRange + i;
+      addHours = i;
+      DateTime modifiedTime = DateTime(now.year, i + 1, now.day, 0, 0, 0);
+      list.add(CoordinatePoint(modifiedTime, i));
+    }
+    return list;
+  }
+
   @override
   Widget build(BuildContext context) {
+    var monthlyData = getMonthlyData();
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
@@ -188,6 +235,48 @@ class PolygonCustomPage extends StatelessWidget {
         child: Center(
           child: Column(
             children: <Widget>[
+              SizedBox(
+                height: 300,
+                child: Chart(
+                  data: [
+                    { 'genre': 'Sports', 'sold': 275 },
+                    { 'genre': 'Strategy', 'sold': 115 },
+                    { 'genre': 'Action', 'sold': 120 },
+                    { 'genre': 'Shooter', 'sold': 350 },
+                    { 'genre': 'Other', 'sold': 150 },
+                  ],
+                  variables: {
+                    'genre': Variable(
+                      accessor: (Map map) => map['genre'] as String,
+                    ),
+                    'sold': Variable(
+                      accessor: (Map map) => map['sold'] as num,
+                    ),
+                  },
+                  marks: [IntervalMark()],
+                  axes: [
+                    Defaults.horizontalAxis,
+                    Defaults.verticalAxis,
+                  ],
+                ),
+              ),
+              SizedBox(
+                  height: 300,
+                  child: YSChart(
+                    title: 'Energy Usage (Wh)',
+                    timeFormat: DateFormat('MM/dd HH:mm'),
+                    data: getDailyData(),
+                    chartType: ChartType.line,
+                  )),
+              SizedBox(
+                  height: 300,
+                  child: YSChart(
+                    title: 'Energy Usage (Wh)',
+                    timeFormat: DateFormat('MM'),
+                    data: monthlyData,
+                    chartType: ChartType.column,
+                    xTicks: monthlyData.map((e) => e.x).toList(),
+                  )),
               Container(
                 padding: const EdgeInsets.fromLTRB(20, 40, 20, 5),
                 child: const Text(
